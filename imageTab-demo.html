@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>表格</title>
+	<title>imageTab</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1, minimum-scale=1.0, maximum-scale=1.0">
 	<style type="text/css">
@@ -49,7 +49,12 @@
 		height: 100%;
 		left: 0;
 		top: 0;
+		opacity: 1;
 		z-index: 10;
+		-webkit-transition: .2s linear;
+	}
+	.showImage.disable{
+		opacity: 0;
 	}
 	.showImage .bg{
 		position: fixed;
@@ -67,14 +72,21 @@
 		height: 100%;
 		left: 0;
 		right: 0;
+		opacity: 1;
+		-webkit-transform: scale(1);
+		-webkit-transition: .2s linear;
 		z-index: 2;
+	}
+	.showImage .bd.disable{
+		-webkit-transform: scale(0);
+		opacity: 0;
 	}
 	.showImage img{
 		position: absolute;
 		left: 50%;
 		top: 50%;
 		-webkit-transform: scale(0) translate(0,0);
-		-webkit-transition: .2s ease;
+		-webkit-transition: .2s ease-in-out;
 		z-index: 1;
 	}
 	.showImage img.cur{
@@ -110,6 +122,7 @@
 		top: 50%;
 		margin: -15px 0 0 -15px;
 		z-index: 4;
+		opacity: 1;
 	}
 	</style>
 </head>
@@ -122,12 +135,14 @@
 			<li ><img src="http://iph.href.lu/100x200?text=小图4" alt="" data-src="http://iph.href.lu/200x400?text=大图4"></li>
 			<li ><img src="http://iph.href.lu/100x200?text=小图5" alt="" data-src="http://iph.href.lu/200x400?text=大图5"></li>
 			<li ><img src="http://iph.href.lu/100x200?text=小图6" alt="" data-src="http://iph.href.lu/200x400?text=大图6"></li>
+			<li ><img src="http://iph.href.lu/100x200?text=小图7" alt="" data-src="http://iph.href.lu/200x400?text=大图7"></li>
+			<li ><img src="http://iph.href.lu/100x200?text=小图8" alt="" data-src="http://iph.href.lu/200x400?text=大图8"></li>
 		</ul>
 	</div>
-	<div class="showImage">
-		<div class="close">关闭</div>
+	<div class="showImage disable">
+		<div class="close j-close">关闭</div>
 		<div class="bg"></div>
-		<div class="bd"></div>
+		<div class="bd disable"></div>
 		<span class="loading"></span>
 	</div>
 	
@@ -191,7 +206,7 @@
 				var _this = this;
 				_this.target = opts.target;
 				_this.showArea = opts.showArea;
-				_this.closeBtn = opts.closeBtn;
+				_this.closeBtn = opts.showArea.querySelector(".j-close");
 				_this.defaultImage = opts.defaultImage;
 				_this.childNum = _this.target.querySelectorAll("li").length;
 				_this.bigImageList = [];
@@ -219,8 +234,6 @@
 
 					_this.currentIndex = +_t.dataset.index;
 
-					_this.showArea.style.display = "block";
-
 					_this.showImage();
 				});
 
@@ -229,7 +242,11 @@
 					while(_t != _this.showArea){
 						_t = _t.parentNode;
 					}
-					_t.style.display = "none";
+					_t.querySelector(".bd").classList.add("disable");
+					_t.classList.add("disable");
+					setTimeout(function(){
+						_t.style.display = "none";
+					},210);
 				});
 
 				_this.showArea.addEventListener("touchstart",function(e){
@@ -245,13 +262,26 @@
 						_this.imageTab("next");
 					}
 				});
+
+				_this.showArea.addEventListener("click",function(e){
+					var _t = e.target;
+					if(_t.tagName == "IMG" && _t.classList.contains("prev")){
+						_this.imageTab("prev");
+					}
+					if(_t.tagName == "IMG" && _t.classList.contains("next")){
+						_this.imageTab("next");
+					}
+				})
 			},
 
 			showImage : function(){
 				var _this = this;
 
+				_this.showArea.style.display = "block";
+
 				if(_this.hasloadShowArea){
-					var img = _this.showArea.querySelector(".bd").querySelectorAll("img");
+					var showBd = _this.showArea.querySelector(".bd");
+					var img = showBd.querySelectorAll("img");
 					for(var i = 0; i < img.length; i++){
 						if(_this.currentIndex == i){
 							img[i].className = "cur";
@@ -264,10 +294,18 @@
 						}
 						
 					}
+					setTimeout(function(){
+						showBd.classList.remove("disable");
+						_this.showArea.classList.remove("disable");
+					},10);
+					
 				}else{
 					var loadNum = 0;
 					var showBd = _this.showArea.querySelector(".bd");
-					showBd.style.opacity = "0";
+
+					setTimeout(function(){
+						_this.showArea.classList.remove("disable");
+					},10)
 
 					for(var i = 0; i < _this.bigImageList.length; i++){
 						var bigSrc = _this.bigImageList[i];
@@ -283,7 +321,7 @@
 								if(loadNum == _this.bigImageList.length){
 									setTimeout(function(){
 										_this.showArea.removeChild(_this.showArea.querySelector(".loading"));
-										showBd.style.opacity = "1";
+										showBd.classList.remove("disable");
 									},300)
 								}
 							}
@@ -321,8 +359,7 @@
 
 		ueApp.magnify.init({
 			target : document.querySelector("ul"),
-			showArea : document.querySelector(".showImage"),
-			closeBtn : document.querySelector(".showImage").querySelector(".close")
+			showArea : document.querySelector(".showImage")
 		});
 
 	</script>
